@@ -9,21 +9,35 @@
 import SpriteKit
 import ARKit
 import GameplayKit
-// MARK: - Properties
-let remainingLabel = SKLabelNode()
-var timer: Timer?
-var targetsCreated = 0
-var targetCount = 0 {
-    didSet {
-        remainingLabel.text = "Remaining: \(targetCount)"
-    }
-}
+
 // MARK: - Class
 class Scene: SKScene {
     // MARK: - Properties
     let startTime = Date()
-    
+    let remainingLabel = SKLabelNode()
+    var timer: Timer?
+    var targetsCreated = 0
+    var targetCount = 0 {
+        didSet {
+            remainingLabel.text = "Remaining: \(targetCount)"
+        }
+    }
     // MARK: - Functions
+    func gameOver() {
+        remainingLabel.removeFromParent()
+        
+        let gameOver = SKSpriteNode(imageNamed: "gameOver")
+        addChild(gameOver)
+        
+        let timeTaken = Date().timeIntervalSince(startTime)
+        let timeLabel = SKLabelNode(text: "Time taken: \(Int(timeTaken)) seconds")
+        timeLabel.fontSize = 36
+        timeLabel.fontName = "AmericanTypewriter"
+        timeLabel.color = .white
+        timeLabel.position = CGPoint(x: 0, y: -view!.frame.midY + 50)
+        addChild(timeLabel)
+    }
+    /// Creates 20 targets.
     func createTarget() {
         // Create targets
         if targetsCreated == 20 {
@@ -81,35 +95,25 @@ class Scene: SKScene {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
+         guard let touch = touches.first else { return }
+         let location = touch.location(in: self)
         
-        let hit = nodes(at: location)
+         let hit = nodes(at: location)
         
-        if let sprite = hit.first {
-           let scaleOut = SKAction.scale(to: 2, duration: 0.2)
-           let fadeOut = SKAction.fadeOut(withDuration: 0.2)
-           let group = SKAction.group([scaleOut, fadeOut])
-           let sequence = SKAction.sequence([group, SKAction.removeFromParent()])
-           sprite.run(sequence)
+         if  let sprite = hit.first {
+            let scaleOut = SKAction.scale(to: 2, duration: 0.2)
+            let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+            let group = SKAction.group([scaleOut, fadeOut])
+            let sequence = SKAction.sequence([group, SKAction.removeFromParent()])
+            sprite.run(sequence)
             
-           targetCount -= 1
+            targetCount -= 1
+            
+            if targetsCreated == 20 && targetCount == 0 {
+                gameOver()
+            }
+            
         }
+        
     }
 }
-        
-//        // Create anchor using the camera's current position
-//        if let currentFrame = sceneView.session.currentFrame {
-//
-//            // Create a transform with a translation of 0.2 meters in front of the camera
-//            var translation = matrix_identity_float4x4
-//            translation.columns.3.z = -0.2
-//            let transform = simd_mul(currentFrame.camera.transform, translation)
-//
-//            // Add a new anchor to the session
-//            let anchor = ARAnchor(transform: transform)
-//            sceneView.session.add(anchor: anchor)
-//        }
-//    }
-//}
-
