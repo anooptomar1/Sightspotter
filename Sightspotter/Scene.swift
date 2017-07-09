@@ -9,18 +9,20 @@
 import SpriteKit
 import ARKit
 import GameplayKit
-
-class Scene: SKScene {
-    
-    // MARK: - Properties
-    let remainingLabel = SKLabelNode()
-    var timer: Timer?
-    var targetsCreated = 0
-    var targetCount = 0 {
-        didSet {
-            remainingLabel.text = "Remaining: \(targetCount)"
-        }
+// MARK: - Properties
+let remainingLabel = SKLabelNode()
+var timer: Timer?
+var targetsCreated = 0
+var targetCount = 0 {
+    didSet {
+        remainingLabel.text = "Remaining: \(targetCount)"
     }
+}
+// MARK: - Class
+class Scene: SKScene {
+    // MARK: - Properties
+    let startTime = Date()
+    
     // MARK: - Functions
     func createTarget() {
         // Create targets
@@ -79,21 +81,35 @@ class Scene: SKScene {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let sceneView = self.view as? ARSKView else {
-            return
-        }
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
         
-        // Create anchor using the camera's current position
-        if let currentFrame = sceneView.session.currentFrame {
+        let hit = nodes(at: location)
+        
+        if let sprite = hit.first {
+           let scaleOut = SKAction.scale(to: 2, duration: 0.2)
+           let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+           let group = SKAction.group([scaleOut, fadeOut])
+           let sequence = SKAction.sequence([group, SKAction.removeFromParent()])
+           sprite.run(sequence)
             
-            // Create a transform with a translation of 0.2 meters in front of the camera
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.2
-            let transform = simd_mul(currentFrame.camera.transform, translation)
-            
-            // Add a new anchor to the session
-            let anchor = ARAnchor(transform: transform)
-            sceneView.session.add(anchor: anchor)
+           targetCount -= 1
         }
     }
 }
+        
+//        // Create anchor using the camera's current position
+//        if let currentFrame = sceneView.session.currentFrame {
+//
+//            // Create a transform with a translation of 0.2 meters in front of the camera
+//            var translation = matrix_identity_float4x4
+//            translation.columns.3.z = -0.2
+//            let transform = simd_mul(currentFrame.camera.transform, translation)
+//
+//            // Add a new anchor to the session
+//            let anchor = ARAnchor(transform: transform)
+//            sceneView.session.add(anchor: anchor)
+//        }
+//    }
+//}
+
